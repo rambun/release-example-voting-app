@@ -22,6 +22,17 @@ services:
     depends_on:
       - "redis"
       - "db"
+  
+  result2:
+    build: ./result
+    command: 
+    - nodemon 
+    - server.js
+    ports:
+      - "5001:80"
+    depends_on:
+      - "redis"
+      - "db"
 
   worker:
     build:
