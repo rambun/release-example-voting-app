@@ -1,32 +1,45 @@
-version: "3"
+version: "3.2"
 
 services:
   vote:
-    build: ./vote
-    command: python app.py
-    volumes:
-     - ./vote:/app
+    image: dockersamples/examplevotingapp_vote:dotnet-nanoserver-sac2016
+    build: 
+      context: ./vote/dotnet
     ports:
       - "5000:80"
+    depends_on:
+      - message-queue
 
-  redis:
-    image: redis:alpine
-    ports: ["6379"]
-
-  worker:
-    build: ./worker
-
-  db:
-    image: postgres:9.4
-    environment:
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "postgres"
-
-  result:
-    build: ./result
-    command: nodemon server.js
-    volumes:
-      - ./result:/app
+  result1:
+    image: dockersamples/examplevotingapp_result:dotnet-nanoserver-sac2016
+    build: 
+      context: ./result/dotnet
     ports:
       - "5001:80"
-      - "5858:5858"
+    environment:      
+      - "ConnectionStrings:ResultData=Server=db;Port=4000;Database=votes;User=root;SslMode=None"
+    depends_on:
+      - db
+
+  worker2:
+    image: dockersamples/examplevotingapp_worker:dotnet-nanoserver-sac2016
+    build:
+      context: ./worker/dotnet
+    environment:      
+      - "ConnectionStrings:VoteData=Server=db;Port=4000;Database=votes;User=root;SslMode=None"
+    depends_on:
+      - message-queue
+      - db
+
+  message-queue:
+    image: nats:nanoserver
+
+  db:
+    image: dockersamples/tidb:nanoserver    
+    ports:
+      - "3306:4000"
+
+networks:
+  default:
+    external:
+      name: nat
