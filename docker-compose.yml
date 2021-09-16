@@ -22,6 +22,7 @@ services:
     depends_on:
       - "redis"
       - "db"
+      - "result2"
   
   result2:
     build: ./result
@@ -33,7 +34,6 @@ services:
     depends_on:
       - "redis"
       - "db"
-      - "result"
 
   worker:
     build:
